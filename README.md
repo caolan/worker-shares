@@ -15,15 +15,14 @@ To start, run:
 
 ## What happen's behind the curtain
 
-Similar to the [public user store worker](https://github.com/hoodiehq/worker-user-public-store),
-an additional database gets created for every user, in the form of "user/hash567/$shares".
-Similar to the "user/hash567/$public" databases, objects do not get replicated directly from
-"user/hash567" as the user has the option to share only certain attributes of the object.
+An additional `$shares` database gets created for every user, in the form of `user/hash567/$shares`.
+Objects do not get replicated directly from the user datbase (`user/hash567`) as the user has the
+option to share only certain attributes of an object.
 
-When starting up, the worker starts to follow all user databases and the $shares counterparts.
-If the latter do not exist yet, they get created.
+The worker follows all user databases and the `$shares` counterparts. If the latter do not exist yet,
+they get created.
 
-When a user creates a share object, this is how it looks like the following:
+Here's an example (simplified) `$share` object created by a user:
 
     {
       _id         : "$share/uuid567",
@@ -31,12 +30,10 @@ When a user creates a share object, this is how it looks like the following:
       type        : "$share"
     }
 
-The worker picks it up, creates a database "share/uuid567" and creates a continuous replication
-from user's $shares database. It also sets the attribute `$state` of the $share object to
-"active", so that the frontend code can inform the user that the sharing has been started.
+The worker picks it up, creates a database "share/uuid567" and a continuous replication from user's `$shares` database.
+It also sets the `$state` attribute to "active", so that the frontend client can inform the user that the sharing has been started.
 
-Whenever the user adds an object to the sharing, the share id will be added
-to the $shares attribute (which gets created if not present yet.)
+Whenever the user adds an object to the sharing, the share id will be added to the $shares attribute (which gets created if not present yet.)
 
     {
       _id: "todo/abc4567",
@@ -44,7 +41,7 @@ to the $shares attribute (which gets created if not present yet.)
       name: "Remeber the mild",
       owner: "joe@example.com",
       $shares: {
-        "uuid567": true
+        **"uuid567": true**
       }
     }
 
@@ -57,7 +54,7 @@ Besides `true`, the value can also be an array of attributes:
       name: "Remeber the mild",
       owner: "joe@example.com",
       $shares: {
-        "uuid567": ["name"]
+        **"uuid567": ["name"]**
       }
     }
 
@@ -65,12 +62,13 @@ In the example above, only the `name` attribute will be copied over, the `owner`
 will not be shared. 
 
 Whenever the user removes an object from a sharing, the value will be set to false, so that
-the worker can react on it and remove the object from the $shares database
+the worker can react on it and remove the object from the $shares database. Once the object
+has been removed, the share id will me remove from the `$shares` hash of the object.
 
 
 ## To be done
 
-The current implementation ignores share settings and is not yet bidirectional.
+The current implementation ignores share settings and is not bidirectional yet.
 
 * the `access` setting  
   the access setting defines who can read and/or write to the sharing. Default
