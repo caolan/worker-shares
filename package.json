@@ -1,0 +1,17 @@
+{
+  "name": "hoodie-worker-shares",
+  "version": "0.0.1",
+  "description": "handles sharing of objects between users or publicly",
+  "author": "Hoodie",
+  "dependencies": {
+    "cradle": "*",
+    "request": "~2.9.203"
+  },
+  "devDependencies": {
+    "mocha": "*"
+  },
+  "scripts": {
+    "test": "mocha",
+    "start": "node index.js"
+  }
+}
