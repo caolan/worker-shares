@@ -25,11 +25,11 @@ If the latter do not exist yet, they get created.
 
 When a user creates a share object, this is how it looks like the following:
 
-   {
-     _id         : "$share/uuid567",
-     _ref        : "1-bl2xa#1346886508617",
-     type        : "$share"
-   }
+    {
+      _id         : "$share/uuid567",
+      _ref        : "1-bl2xa#1346886508617",
+      type        : "$share"
+    }
 
 The worker picks it up, creates a database "share/uuid567" and creates a continuous replication
 from user's $shares database. It also sets the attribute `$state` of the $share object to
@@ -62,7 +62,10 @@ Besides `true`, the value can also be an array of attributes:
     }
 
 In the example above, only the `name` attribute will be copied over, the `owner` attribute
-will not be shared.
+will not be shared. 
+
+Whenever the user removes an object from a sharing, the value will be set to false, so that
+the worker can react on it and remove the object from the $shares database
 
 
 ## To be done
