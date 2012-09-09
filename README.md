@@ -76,12 +76,12 @@ The current implementation ignores share settings and is not yet bidirectional.
   the access setting defines who can read and/or write to the sharing. Default
   value is false, meaning only the creator has access. `true` means the sharing
   is public. More granular settings are possible as well:  
-    
-  `{read: true}` public sharing, but read only
-  `{read: ["user1", "user2"]}` private sharing, only user1 & user2 have read access
-  `{write: ["user1", "user2"]}` private sharing, user1 & user2 have read & write access
-  `{read: true, write: ["user1"]}` private sharing, but only user1 has write access
-    
+
+  `{read: true}` public sharing, but read only  
+  `{read: ["user1", "user2"]}` private sharing, only user1 & user2 have read access  
+  `{write: ["user1", "user2"]}` private sharing, user1 & user2 have read & write access  
+  `{read: true, write: ["user1"]}` private sharing, but only user1 has write access  
+
   depending on the access setting, a _design doc has to be created that prevents
   unauthorized users to make changes to the shared objects. And if the share allows
   changes, they need to be replicated to users $shares database and the changes need
