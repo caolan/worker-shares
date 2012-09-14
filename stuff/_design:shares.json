@@ -1,0 +1,6 @@
+{
+    "_id": "_design/shares",
+    "updates": {
+        "cancel": "function(doc, req) { doc._deleted = true; return [doc, \"OK\"] };"
+    }
+}

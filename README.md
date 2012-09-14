@@ -13,6 +13,15 @@ To start, run:
     $ node index.js
 
 
+## Requirements
+
+As of now, there is no "worker installation routine yet". But as soon as we have them,
+the routine for the Shares Worker has to add two things to the Couch
+
+1. Create a "skeleton/share" database, having a `_design/share_filters` doc (see stuff/_design:filters.json)
+2. Adding a "_design/shares" doc to _replicators database (see stuff _design:cancel_replications)
+
+
 ## What happen's behind the curtain
 
 An additional `$shares` database gets created for every user, in the form of `user/hash567/$shares`.
