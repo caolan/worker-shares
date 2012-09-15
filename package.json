@@ -5,7 +5,8 @@
   "author": "Hoodie",
   "dependencies": {
     "cradle": "*",
-    "request": "~2.9.203"
+    "request": "~2.9.203",
+    "clone": "*"
   },
   "devDependencies": {
     "mocha": "*"
