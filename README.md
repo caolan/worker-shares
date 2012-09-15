@@ -33,39 +33,45 @@ they get created.
 
 Here's an example (simplified) `$share` object created by a user:
 
-    {
-      _id         : "$share/uuid567",
-      _ref        : "1-bl2xa#1346886508617",
-      type        : "$share"
-    }
+```json
+{
+  _id         : "$share/uuid567",
+  _ref        : "1-bl2xa#1346886508617",
+  type        : "$share"
+}
+```
 
 The worker picks it up, creates a database "share/uuid567" and a continuous replication from user's `$shares` database.
 It also sets the `$state` attribute to "active", so that the frontend client can inform the user that the sharing has been started.
 
 Whenever the user adds an object to the sharing, the share id will be added to the $shares attribute (which gets created if not present yet.)
 
-    {
-      _id: "todo/abc4567",
-      type: "todo",
-      name: "Remeber the mild",
-      owner: "joe@example.com",
-      $shares: {
-        **"uuid567": true**
-      }
-    }
+```json
+{
+  _id: "todo/abc4567",
+  type: "todo",
+  name: "Remeber the mild",
+  owner: "joe@example.com",
+  $shares: {
+    **"uuid567": true**
+  }
+}
+```
 
 The worker will remove the $shares attribute and copy it over to the user's $shares database.
 Besides `true`, the value can also be an array of attributes:
 
-    {
-      _id: "todo/abc4567",
-      type: "todo",
-      name: "Remeber the mild",
-      owner: "joe@example.com",
-      $shares: {
-        **"uuid567": ["name"]**
-      }
-    }
+```json
+{
+  _id: "todo/abc4567",
+  type: "todo",
+  name: "Remeber the mild",
+  owner: "joe@example.com",
+  $shares: {
+    **"uuid567": ["name"]**
+  }
+}
+```
 
 In the example above, only the `name` attribute will be copied over, the `owner` attribute
 will not be shared. 
