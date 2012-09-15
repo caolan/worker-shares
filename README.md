@@ -35,9 +35,9 @@ Here's an example (simplified) `$share` object created by a user:
 
 ```json
 {
-  _id         : "$share/uuid567",
-  _ref        : "1-bl2xa#1346886508617",
-  type        : "$share"
+  _id  : "$share/uuid567",
+  _ref : "1-bl2xa#1346886508617",
+  type : "$share"
 }
 ```
 
@@ -48,12 +48,12 @@ Whenever the user adds an object to the sharing, the share id will be added to t
 
 ```json
 {
-  _id: "todo/abc4567",
-  type: "todo",
-  name: "Remeber the mild",
-  owner: "joe@example.com",
-  $shares: {
-    **"uuid567": true**
+  _id     : "todo/abc4567",
+  type    : "todo",
+  name    : "Remeber the mild",
+  owner   : "joe@example.com",
+  $shares : {
+    "uuid567": true
   }
 }
 ```
@@ -63,12 +63,12 @@ Besides `true`, the value can also be an array of attributes:
 
 ```json
 {
-  _id: "todo/abc4567",
-  type: "todo",
-  name: "Remeber the mild",
-  owner: "joe@example.com",
-  $shares: {
-    **"uuid567": ["name"]**
+  _id     : "todo/abc4567",
+  type    : "todo",
+  name    : "Remeber the mild",
+  owner   : "joe@example.com",
+  $shares : {
+    "uuid567": ["name"]
   }
 }
 ```
