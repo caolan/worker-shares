@@ -19,10 +19,11 @@ As of now, there is no "worker installation routine yet". But as soon as we have
 the routine for the Shares Worker has to add two things to the Couch
 
 1. Create a "skeleton/share" database, having a `_design/share_filters` doc (see stuff/_design:filters.json)
-2. Adding a "_design/shares" doc to _replicators database (see stuff _design:cancel_replications)
+2. Adding a "_design/shares" doc to _replicators database (see stuff/_design:cancel_replications)
+3. _users database needs a view to map usernames by $owner hashs (see stuff/_design:user_views)
 
 
-## What happen's behind the curtain
+## What happens behind the curtain
 
 An additional `$shares` database gets created for every user, in the form of `user/hash567/$shares`.
 Objects do not get replicated directly from the user datbase (`user/hash567`) as the user has the

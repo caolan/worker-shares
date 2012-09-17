@@ -3,3 +3,11 @@
 * implement UserSharesWorker.prototype._changeCallback
 * implement event emitting for the workers:
   remove worker from hash when userDB has been droppend.
+* UserWorker.prototype._handleShareObjectUpdate:
+  handle error response and objects that could not be deleted in
+  `couch.database(this.shares_database_name).save(docsToDelete)`
+* create and maintain a global `shares` database, that holds
+  a list of $share objects and maintain status of created share
+  databases. The same database can be used to give access to new
+  users after their signup, when their username is included in
+  one of the access settings.
