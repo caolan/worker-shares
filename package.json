@@ -6,7 +6,8 @@
   "dependencies": {
     "cradle": "*",
     "request": "~2.9.203",
-    "clone": "*"
+    "clone": "*",
+    "q": "*"
   },
   "devDependencies": {
     "mocha": "*"
