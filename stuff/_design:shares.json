@@ -1,6 +1,7 @@
 {
   "_id": "_design/shares",
   "updates": {
-    "cancel": "function(doc, req) { doc._deleted = true; return [doc, \"OK\"] };"
+    "stop": "function(doc, req) { doc._deleted = true; return [doc, \"OK\"] };",
+    "start": "function(doc, req) { log('req.id'); log(req.id); var dbs; if (! doc) doc = {}; doc._id = req.id; dbs = req.id.split(' => '); doc.source = dbs[0]; doc.target = dbs[1]; doc.continuous = true; doc.userCtx = req.userCtx; doc.$createdAt = doc.$updatedAt = JSON.stringify(new Date); return [doc, \"OK\"] };"
   }
 }
