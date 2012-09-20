@@ -1,5 +1,3 @@
-* implement UserWorker.prototype._handleShareObjectUpdate
-* implement UserWorker.prototype._handleSharedObjectUpdate
 * implement UserSharesWorker.prototype._changeCallback
 * implement event emitting for the workers:
   remove worker from hash when userDB has been droppend.
