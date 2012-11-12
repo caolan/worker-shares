@@ -2,7 +2,7 @@
   "_id": "_design/views",
   "views": {
     "ownerByUsername": {
-      "map": "function(doc) { var username; if (doc.$owner) { username = doc.name.replace(/^(_anonymous)?user\\//, ''); emit(username, doc.$owner); }; };"
+      "map": "function(doc) { var username; if (doc.ownerHash) { username = doc.name.replace(/^(_anonymous)?user\\//, ''); emit(username, doc.ownerHash); }; };"
     }
   }
 }
