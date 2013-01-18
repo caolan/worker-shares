@@ -21,7 +21,7 @@ the routine for the Shares Worker has to add two things to the Couch
 1. Create a "skeleton/share" database, having a `_design/share_filters`  doc and a 
    `_design/write_access` doc (see stuff/_design:filters.json and stuff/_design:write_access.json)
 2. Adding a "_design/shares" doc to _replicators database (see stuff/_design:cancel_replications)
-3. _users database needs a view to map usernames by $owner hashs (see stuff/_design:user_views)
+3. _users database needs a view to map usernames by owner hashes (see stuff/_design:user_views)
 
 
 ## What happens behind the curtain

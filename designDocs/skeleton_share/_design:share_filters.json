@@ -1,6 +1,6 @@
 {
   "_id": "_design/filters",
   "filters": {
-    "share": "function(doc, req) { uuid = req.info.db_name.split(/\//).pop(); log('UUID ' + uuid); return (doc._id === '$share/' + uuid) || (doc.$sharings && ~doc.$sharings.indexOf(uuid))  };"
+       "share": "function(doc, req) { return doc._id.indexOf(req.query.share_id) === 6  };"
   }
 }
