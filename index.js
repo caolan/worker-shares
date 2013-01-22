@@ -1,4 +1,4 @@
-var WorkerShares = require("./lib/WorkerShares.js");
+var Worker = require("./lib/Worker.js");
 
 var config = {
   server: process.env["HOODIE_SERVER"],
@@ -8,4 +8,4 @@ var config = {
   },
   persistent_since_storage: false
 };
-new WorkerShares(config);
+new Worker(config);

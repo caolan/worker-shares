@@ -1,7 +1,7 @@
 var assert = require("assert");
-var WorkerShares = require("./../lib/WorkerShares");
+var Worker = require("./../lib/Worker");
 
-describe("WorkerShares", function() {
+describe("Worker", function() {
   describe("foo()", function() {
     it("should do that thing", function() {
       assert(true);
