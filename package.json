@@ -5,10 +5,7 @@
   "author": "Hoodie",
   "main": "lib/Worker.js",
   "dependencies": {
-    "cradle": "*",
-    "request": "~2.9.203",
-    "clone": "*",
-    "q": "*"
+    "hoodie-worker": "git://github.com/hoodiehq/hoodie-worker.git"
   },
   "devDependencies": {
     "mocha": "*"
