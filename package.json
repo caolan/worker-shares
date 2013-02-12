@@ -8,10 +8,12 @@
     "hoodie-worker": "git://github.com/hoodiehq/hoodie-worker.git"
   },
   "devDependencies": {
-    "mocha": "*"
+      "jasmine-node": "*",
+      "when": "~1.7",
+      "when-promisify": "*"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "jasmine-node spec",
     "start": "node index.js"
   }
 }
