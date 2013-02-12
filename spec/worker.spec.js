@@ -4,7 +4,7 @@ var when = require("when");
 
 var setupMock = require('./mocks/setup')
 var couchMock = require('./mocks/couch')
-var Worker   = require("./../lib/worker.js");
+var Worker    = require("./../lib/worker.js");
 
 describe("Worker", function() {
 
