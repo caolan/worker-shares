@@ -1,4 +1,7 @@
-# Hoodie Shares Worker
+[![Build Status](https://travis-ci.org/hoodiehq/worker-shares.png?branch=master)](https://travis-ci.org/hoodiehq/worker-shares)
+
+Hoodie Shares Worker
+======================
 
 This worker handles sharing of objects between users or publicly.
 
