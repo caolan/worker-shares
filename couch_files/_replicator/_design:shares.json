@@ -1,7 +1,0 @@
-{
-  "_id": "_design/shares",
-  "updates": {
-    "stop": "function(doc, req) { log('stopping replication ' + doc._id); doc._deleted = true; return [doc, \"OK\"] };",
-    "start": "function(doc, req) { var dbs, share_id; if (! doc) doc = {}; doc._id = req.id; dbs = req.id.split(' => '); doc.source = dbs[0]; doc.target = dbs[1]; doc.continuous = true; doc.user_ctx = {name: req.userCtx.name, roles: req.userCtx.roles}; doc.$createdAt = doc.$updatedAt = JSON.stringify(new Date); for (var key in req.query) { doc[key] = req.query[key]; }; share_id = req.id.match('share/([0-9a-z]+)').pop(); doc.query_params = {}; doc.query_params.share_id = share_id; return [doc, \"OK\"] };"
-  }
-}
