@@ -156,11 +156,11 @@ describe("Worker", function() {
     beforeEach(function() {
       spyOn(this.worker, "listenUp");
       this.worker.launch.andCallThrough()
-      this.worker.userDbWorkers = null
+      this.worker.userDatabases = null
       this.worker.launch()
     });
-    it('should prepare userDbWorkers hash', function () {
-      expect(this.worker.userDbWorkers).toEqual({});
+    it('should prepare userDatabases hash', function () {
+      expect(this.worker.userDatabases).toEqual({});
     });
     it('should init shares db worker', function () {
       expect(SharesDbWorkerSpy).wasCalledWith( this.worker )
@@ -319,7 +319,7 @@ describe("Worker", function() {
 
   describe('#userDbInitialized( dbName )', function () {
     beforeEach(function() {
-      this.worker.userDbWorkers = {
+      this.worker.userDatabases = {
         'user/hash' : true
       }
     });
@@ -338,25 +338,25 @@ describe("Worker", function() {
 
   describe('#handleCreatedUserAccount( dbName )', function () {
     beforeEach(function() {
-      this.worker.userDbWorkers = {}
+      this.worker.userDatabases = {}
     });
     it('should initialize a new UserDbWorker', function () {
       this.worker.handleCreatedUserAccount( 'user/hash' )
       expect(UserDbWorkerSpy).wasCalledWith( 'user/hash', this.worker );
-      expect(this.worker.userDbWorkers['user/hash']).toEqual( UserDbWorkerMock );
+      expect(this.worker.userDatabases['user/hash']).toEqual( UserDbWorkerMock );
     });
   }); // #handleCreatedUserAccount( dbName )
 
 
   describe('#handleRemovedUserAccount( dbName )', function () {
     beforeEach(function() {
-      this.worker.userDbWorkers = {
+      this.worker.userDatabases = {
         'user/hash' : 'userDbWorker'
       }
     });
-    it('remove userDbWorker from userDbWorkers hash', function () {
+    it('remove userDbWorker from userDatabases hash', function () {
       this.worker.handleRemovedUserAccount( 'user/hash' )
-      expect(this.worker.userDbWorkers['user/hash']).toBeUndefined();
+      expect(this.worker.userDatabases['user/hash']).toBeUndefined();
     });
   }); // #handleRemovedUserAccount( dbName )
 
