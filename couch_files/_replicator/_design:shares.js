@@ -5,22 +5,36 @@ var stop = function(doc, req) {
 };
 
 var start = function(doc, req) { 
-  var dbs, share_id; 
+  var dbs, shareId, userHash; 
   if (! doc) doc = {}; 
-  doc._id = req.id; 
-  dbs = req.id.split(' => '); 
-  doc.source = dbs[0]; 
-  doc.target = dbs[1]; 
+
+  doc._id        = req.id; 
   doc.continuous = true; 
-  doc.user_ctx = {name: req.userCtx.name, roles: req.userCtx.roles}; 
-  doc.$createdAt = JSON.stringify(new Date());
-  doc.$updatedAt = doc.$createdAt; 
-  for (var key in req.query) { 
-    doc[key] = req.query[key]; 
+
+  // source & target
+  dbs            = req.id.replace(/^[^\/]\//,'').split(' => '); 
+  doc.source     = dbs[0]; 
+  doc.target     = dbs[1]; 
+
+  // user context
+  userHash = req.id.match(/\buser\/(\w+)/).pop()
+  doc.user_ctx = {
+    roles : userHash
+  }; 
+
+  // filter
+  if (/^share\//.test(target)) {
+    doc.filter = 'filter/share'
   }
-  share_id = req.id.match('share/([0-9a-z]+)').pop(); 
+
+  // timestamps
+  doc.createdAt = JSON.stringify(new Date());
+  doc.updatedAt = doc.createdAt; 
+
+  // query params
+  shareId = req.id.match('share/([0-9a-z]+)').pop(); 
   doc.query_params = {}; 
-  doc.query_params.share_id = share_id; 
+  doc.query_params.shareId = shareId; 
   return [doc, 'OK'];
 };
 

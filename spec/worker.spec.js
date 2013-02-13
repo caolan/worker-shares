@@ -4,14 +4,18 @@ var when = require("when");
 
 var setupMock = require('./mocks/setup')
 var CouchMock = require('./mocks/couch')
-var UserDbWorkerMock = require('./mocks/user_db_worker')
-var UserDbWorkerSpy = spyOnModule('./../lib/user_db_worker.js').andReturn(UserDbWorkerMock)
+
+var UserDbWorkerMock   = require('./mocks/user_database')
+var SharesDbWorkerMock = require('./mocks/shares_database')
+var UserDbWorkerSpy    = spyOnModule('./../lib/user_database.js').andReturn(UserDbWorkerMock)
+var SharesDbWorkerSpy  = spyOnModule('./../lib/shares_database.js').andReturn(SharesDbWorkerMock)
 
 // mock design docs
 var usersDesignDoc        = require('./../couch_files/_users/_design:users_views')
 var replicatorDesignDoc   = require('./../couch_files/_replicator/_design:shares')
 var shareFiltersDesignDoc = require('./../couch_files/skeleton:share/_design:share_filters')
 var shareAccessDesignDoc  = require('./../couch_files/skeleton:share/_design:write_access')
+var sharesDatabaseSecurityOptions = require('./../couch_files/shares/_security')
 
 
 var Worker    = require("./../lib/worker.js");
@@ -33,6 +37,7 @@ describe("Worker", function() {
     this.worker.couch = new CouchMock
   })
   
+
   describe('constructor', function () {
     it("should setup with passed config", function() {
       expect(this.worker.setup).wasCalledWith(this.config);
@@ -57,31 +62,38 @@ describe("Worker", function() {
     });
   }); // constructor
 
+
   describe('#install()', function () {
     beforeEach(function() {
-      this.createShareSkeletonDefer = when.defer()
-      this.createDesignDocsInUsersDefer = when.defer()
+      this.createShareSkeletonDatabaseDefer  = when.defer()
+      this.createSharesDatabaseDefer         = when.defer()
+      this.createDesignDocsInUsersDefer      = when.defer()
       this.createDesignDocsInReplicatorDefer = when.defer()
 
-      spyOn(this.worker, "createShareSkeleton").andReturn( this.createShareSkeletonDefer.promise )
+      spyOn(this.worker, "createShareSkeletonDatabase").andReturn( this.createShareSkeletonDatabaseDefer.promise )
+      spyOn(this.worker, "createSharesDatabase").andReturn( this.createSharesDatabaseDefer.promise )
       spyOn(this.worker, "createDesignDocsInUsers").andReturn( this.createDesignDocsInUsersDefer.promise )
       spyOn(this.worker, "createDesignDocsInReplicator").andReturn( this.createDesignDocsInReplicatorDefer.promise )
 
       this.promise = this.worker.install()
     });
-    it('should #createShareSkeleton()', function () {
-      expect(this.worker.createShareSkeleton).wasCalled();
+    it('should #createShareSkeletonDatabase()', function () {
+      expect(this.worker.createShareSkeletonDatabase).wasCalled();
+    });
+    it('should #createSharesDatabase()', function () {
+      expect(this.worker.createShareSkeletonDatabase).wasCalled();
     });
     it('should #createDesignDocsInUsers()', function () {
-      expect(this.worker.createShareSkeleton).wasCalled();
+      expect(this.worker.createShareSkeletonDatabase).wasCalled();
     });
     it('should #createDesignDocsInReplicator()', function () {
-      expect(this.worker.createShareSkeleton).wasCalled();
+      expect(this.worker.createShareSkeletonDatabase).wasCalled();
     });
 
-    describe('when all installations succeed', function () {
+    _when('all installations succeed', function () {
       beforeEach(function() {
-        this.createShareSkeletonDefer.resolve()
+        this.createShareSkeletonDatabaseDefer.resolve()
+        this.createSharesDatabaseDefer.resolve()
         this.createDesignDocsInUsersDefer.resolve()
         this.createDesignDocsInReplicatorDefer.resolve()
       });
@@ -90,9 +102,10 @@ describe("Worker", function() {
       });
     });
 
-    describe('when #createShareSkeleton() fails', function () {
+    _when('#createShareSkeletonDatabase() fails', function () {
       beforeEach(function() {
-        this.createShareSkeletonDefer.reject()
+        this.createShareSkeletonDatabaseDefer.reject()
+        this.createSharesDatabaseDefer.resolve()
         this.createDesignDocsInUsersDefer.resolve()
         this.createDesignDocsInReplicatorDefer.resolve()
       });
@@ -101,9 +114,22 @@ describe("Worker", function() {
       });
     });
 
-    describe('when #createDesignDocsInUsersDefer() fails', function () {
+    _when('#createSharesDatabaseDefer() fails', function () {
       beforeEach(function() {
-        this.createShareSkeletonDefer.resolve()
+        this.createShareSkeletonDatabaseDefer.resolve()
+        this.createSharesDatabaseDefer.reject()
+        this.createDesignDocsInUsersDefer.resolve()
+        this.createDesignDocsInReplicatorDefer.resolve()
+      });
+      it('it should return a rejected promise', function () {
+        expect(this.promise).toBeRejected();
+      });
+    });
+
+    _when('#createDesignDocsInUsersDefer() fails', function () {
+      beforeEach(function() {
+        this.createShareSkeletonDatabaseDefer.resolve()
+        this.createSharesDatabaseDefer.resolve()
         this.createDesignDocsInUsersDefer.reject()
         this.createDesignDocsInReplicatorDefer.resolve()
       });
@@ -112,9 +138,10 @@ describe("Worker", function() {
       });
     });
 
-    describe('when #createDesignDocsInReplicatorDefer() fails', function () {
+    _when('#createDesignDocsInReplicatorDefer() fails', function () {
       beforeEach(function() {
-        this.createShareSkeletonDefer.resolve()
+        this.createShareSkeletonDatabaseDefer.resolve()
+        this.createSharesDatabaseDefer.resolve()
         this.createDesignDocsInUsersDefer.resolve()
         this.createDesignDocsInReplicatorDefer.reject()
       });
@@ -124,6 +151,7 @@ describe("Worker", function() {
     });
   }); // #install()
 
+
   describe('#launch()', function () {
     beforeEach(function() {
       spyOn(this.worker, "listenUp");
@@ -132,13 +160,17 @@ describe("Worker", function() {
       this.worker.launch()
     });
     it('should prepare userDbWorkers hash', function () {
-      expect(this.worker.listenUp).wasCalled()
       expect(this.worker.userDbWorkers).toEqual({});
     });
+    it('should init shares db worker', function () {
+      expect(SharesDbWorkerSpy).wasCalledWith( this.worker )
+    });
+
     it('should #listenUp()', function () {
       expect(this.worker.listenUp).wasCalled()
     });
   }); // #launch()
+
 
   describe('#listenUp()', function () {
     beforeEach(function() {
@@ -173,13 +205,14 @@ describe("Worker", function() {
       args[1]('dbName')
       expect(this.worker.handleRemovedUserAccount).wasCalledWith('dbName');
     });
-    it("should listen to account:created event", function() {
+    it("should listen to account:added event", function() {
       var args = this.worker.on.calls[1].args
-      expect(args[0]).toBe('account:created')
+      expect(args[0]).toBe('account:added')
       args[1]('dbName')
       expect(this.worker.handleCreatedUserAccount).wasCalledWith('dbName');
     });
   }); // #listenUp()
+
 
   describe('#handleChangeError(error)', function () {
     beforeEach(function() {
@@ -187,9 +220,10 @@ describe("Worker", function() {
       this.worker.handleChangeError('ooops')
     });
     it('call #handleError with a message', function () {
-      expect(this.worker.handleError).wasCalledWith('ooops', 'error in _changes feed');
+      expect(this.worker.handleError).wasCalledWith('ooops', 'error in _users/_changes feed');
     });
   }); // #handleChangeError(error)
+
 
   describe('#handleChange( change )', function () {
     beforeEach(function() {
@@ -275,12 +309,13 @@ describe("Worker", function() {
           spyOn(this.worker, "userDbInitialized").andReturn( true );
           this.worker.handleChange( this.change )
         });
-        it("should not emit account:changed event", function() {
-          expect(this.worker.emit).wasCalledWith('account:changed', 'user/hash');
+        it("should not emit account:updated event", function() {
+          expect(this.worker.emit).wasCalledWith('account:updated', 'user/hash');
         });
       })
     })
   }); // #handleChange( change )
+
 
   describe('#userDbInitialized( dbName )', function () {
     beforeEach(function() {
@@ -300,16 +335,18 @@ describe("Worker", function() {
     });
   }); // #userDbInitialized( dbName )
 
+
   describe('#handleCreatedUserAccount( dbName )', function () {
     beforeEach(function() {
       this.worker.userDbWorkers = {}
     });
-    it('it should initialize a new UserDbWorker?', function () {
+    it('should initialize a new UserDbWorker', function () {
       this.worker.handleCreatedUserAccount( 'user/hash' )
       expect(UserDbWorkerSpy).wasCalledWith( 'user/hash', this.worker );
       expect(this.worker.userDbWorkers['user/hash']).toEqual( UserDbWorkerMock );
     });
   }); // #handleCreatedUserAccount( dbName )
+
 
   describe('#handleRemovedUserAccount( dbName )', function () {
     beforeEach(function() {
@@ -321,13 +358,16 @@ describe("Worker", function() {
       this.worker.handleRemovedUserAccount( 'user/hash' )
       expect(this.worker.userDbWorkers['user/hash']).toBeUndefined();
     });
-  });
+  }); // #handleRemovedUserAccount( dbName )
 
-  describe('#createShareSkeleton()', function () {
+
+  describe('#createShareSkeletonDatabase()', function () {
     beforeEach(function() {
+      this.handleCreateDatabaseErrorDefer = when.defer()
+      spyOn(this.worker, "handleCreateDatabaseError").andReturn( this.handleCreateDatabaseErrorDefer.promise );
       this.handleCreateShareSkeletonSuccessDefer = when.defer()
       spyOn(this.worker, "handleCreateShareSkeletonSuccess").andReturn( this.handleCreateShareSkeletonSuccessDefer.promise );
-      this.promise = this.worker.createShareSkeleton()
+      this.promise = this.worker.createShareSkeletonDatabase()
       this.callback = this.worker.couch.database().create.mostRecentCall.args[0]
     });
     it('should create `skeleton/share` database', function () {
@@ -335,7 +375,7 @@ describe("Worker", function() {
       expect(this.worker.couch.database().create).wasCalled();
     });
 
-    _when('when create succeeds', function () {
+    _when('create succeeds', function () {
       beforeEach(function() {
         this.callback(null, 'woot')
       });
@@ -362,20 +402,35 @@ describe("Worker", function() {
       });
     });
 
-    _when('when create fails', function () {
+    _when('create fails', function () {
       beforeEach(function() {
         this.callback('ooops')
       });
-      it('should reject', function () {
-        expect(this.promise).toBeRejectedWith('ooops');
+
+      _but('#handleCreateDatabaseError() resolves', function () {
+        beforeEach(function() {
+          this.handleCreateDatabaseErrorDefer.resolve()
+        });
+        it('should call #handleCreateShareSkeletonSuccess()', function () {
+          expect(this.worker.handleCreateShareSkeletonSuccess).wasCalled();
+        });
+      });
+      _and('#handleCreateDatabaseError() rejecets', function () {
+        beforeEach(function() {
+          this.handleCreateDatabaseErrorDefer.reject('ooops')
+        });
+        it('should reject', function () {
+          expect(this.promise).toBeRejectedWith('ooops');
+        });
       });
     });
-  });
+  }); // #createShareSkeletonDatabase
 
-  describe('#handleCreateShareSkeletonError( error )', function () {
+
+  describe('#handleCreateDatabaseError( error )', function () {
     _when('error is "file_exists"', function () {
       beforeEach(function() {
-        this.promise = this.worker.handleCreateShareSkeletonError({
+        this.promise = this.worker.handleCreateDatabaseError({
           error: 'file_exists'
         })
       });
@@ -386,7 +441,7 @@ describe("Worker", function() {
 
     _when('error is "ooops"', function () {
       beforeEach(function() {
-        this.promise = this.worker.handleCreateShareSkeletonError({
+        this.promise = this.worker.handleCreateDatabaseError({
           error: 'ooops'
         })
       });
@@ -394,7 +449,8 @@ describe("Worker", function() {
         expect(this.promise).toBeRejectedWith({ error: 'ooops' });
       });
     });
-  });
+  }); // ('#handleCreateDatabaseError( error )
+
 
   describe('#handleCreateShareSkeletonSuccess()', function () {
     beforeEach(function() {
@@ -402,11 +458,11 @@ describe("Worker", function() {
       spyOn(this.worker, "createDesignDocsInShareSkeleton").andReturn( this.createDesignDocsInShareSkeletonDefer.promise );
       this.promise = this.worker.handleCreateShareSkeletonSuccess()
     });
-    it('should #createDesignDocsInShareSkeleton()?', function (done) {
+    it('should #createDesignDocsInShareSkeleton()?', function () {
       expect(this.worker.createDesignDocsInShareSkeleton).wasCalled();
     });
 
-    _when('when #createDesignDocsInShareSkeleton() succeeds', function () {
+    _when('#createDesignDocsInShareSkeleton() succeeds', function () {
       beforeEach(function() {
         this.createDesignDocsInShareSkeletonDefer.resolve()
       });
@@ -415,7 +471,7 @@ describe("Worker", function() {
       });
     });
 
-    _when('when #createDesignDocsInShareSkeleton() fails', function () {
+    _when('#createDesignDocsInShareSkeleton() fails', function () {
       beforeEach(function() {
         this.createDesignDocsInShareSkeletonDefer.reject()
       });
@@ -423,7 +479,133 @@ describe("Worker", function() {
         expect(this.promise).toBeRejected();
       });
     });
+  }); // #handleCreateShareSkeletonSuccess()
+
+
+
+
+
+  describe('#createSharesDatabase()', function () {
+    beforeEach(function() {
+      this.handleCreateDatabaseErrorDefer = when.defer()
+      spyOn(this.worker, "handleCreateDatabaseError").andReturn( this.handleCreateDatabaseErrorDefer.promise );
+      this.handleCreateSharesDatabaseSuccessDefer = when.defer()
+      spyOn(this.worker, "handleCreateSharesDatabaseSuccess").andReturn( this.handleCreateSharesDatabaseSuccessDefer.promise );
+      this.promise = this.worker.createSharesDatabase()
+      this.callback = this.worker.couch.database().create.mostRecentCall.args[0]
+    });
+    it('should create `shares` database', function () {
+      expect(this.worker.couch.database).wasCalledWith('shares');
+      expect(this.worker.couch.database().create).wasCalled();
+    });
+
+    _when('create succeeds', function () {
+      beforeEach(function() {
+        this.callback(null, 'woot')
+      });
+      it('should #handleCreateSharesDatabaseSuccess()', function () {
+        expect(this.worker.handleCreateSharesDatabaseSuccess).wasCalled();
+      });
+
+      _and('#handleCreateSharesDatabaseSuccess() succeeds', function () {
+        beforeEach(function() {
+          this.handleCreateSharesDatabaseSuccessDefer.resolve()
+        });
+        it('should resolve', function () {
+          expect(this.promise).toBeResolved();
+        });
+      });
+
+      _but('#handleCreateSharesDatabaseSuccess() fails', function () {
+        beforeEach(function() {
+          this.handleCreateSharesDatabaseSuccessDefer.reject()
+        });
+        it('should reject', function () {
+          expect(this.promise).toBeRejected();
+        });
+      });
+    });
+
+    _when('create fails', function () {
+      beforeEach(function() {
+        this.callback('ooops')
+      });
+
+      _but('#handleCreateDatabaseError() resolves', function () {
+        beforeEach(function() {
+          this.handleCreateDatabaseErrorDefer.resolve()
+        });
+        it('should call #handleCreateSharesDatabaseSuccess()', function () {
+          expect(this.worker.handleCreateSharesDatabaseSuccess).wasCalled();
+        });
+      });
+      _and('#handleCreateDatabaseError() rejecets', function () {
+        beforeEach(function() {
+          this.handleCreateDatabaseErrorDefer.reject('ooops')
+        });
+        it('should reject', function () {
+          expect(this.promise).toBeRejectedWith('ooops');
+        });
+      });
+    });
+  }); // #createSharesDatabase
+
+
+  describe('#handleCreateSharesDatabaseSuccess()', function () {
+    beforeEach(function() {
+      spyOn(this.worker, "createSharesDatabaseSecurity").andReturn('promise');
+      this.promise = this.worker.handleCreateSharesDatabaseSuccess()
+    });
+    it('should call #createSharesDatabaseSecurity()', function () {
+      expect(this.worker.createSharesDatabaseSecurity).wasCalled();
+    });
+    it('should return promise of #createSharesDatabaseSecurity()', function () {
+      expect(this.promise).toBe('promise')
+    });
+  }); // #handleCreateSharesDatabaseSuccess()
+
+
+  describe('#createSharesDatabaseSecurity()', function () {
+    beforeEach(function() {
+      this.queryDefer = when.defer()
+      this.querySpy = jasmine.createSpy('query').andReturn( this.queryDefer.promise )
+      spyOn(this.worker, "promisify").andReturn( this.querySpy );
+      spyOn(this.worker, "handleCreateSharesDatabaseSecurityError");
+      this.promise = this.worker.createSharesDatabaseSecurity()
+    });
+
+    it('should query shares database with options for _security', function () {
+      expect(this.worker.couch.database).wasCalledWith('shares');  
+      expect(this.querySpy).wasCalledWith( sharesDatabaseSecurityOptions );
+    });
+
+    _when('query succeeds', function () {
+      beforeEach(function() {
+        this.queryDefer.resolve()
+      });
+      it('should resolve', function () {
+        expect(this.promise).toBeResolved();
+      });
+    });
+
+    _when('query fails', function () {
+      beforeEach(function() {
+        this.queryDefer.reject('ooops')
+      });
+      it('should #handleCreateSharesDatabaseSecurityError()', function () {
+        expect(this.worker.handleCreateSharesDatabaseSecurityError).wasCalledWith('ooops');
+      });
+    });
+  }); // #createSharesDatabaseSecurity() 
+
+
+  describe('#handleCreateSharesDatabaseSecurityError(error)', function () {
+    it('rejecet with passed error', function () {
+      var promise = this.worker.handleCreateSharesDatabaseSecurityError( 'ooops' )
+      expect(promise).toBeRejectedWith( 'ooops' );
+    });
   });
+
 
   describe('#createDesignDocsInShareSkeleton()', function () {
     beforeEach(function() {
@@ -461,7 +643,8 @@ describe("Worker", function() {
         expect(this.promise).toBeRejected();
       });
     });
-  });
+  }); // #createDesignDocsInShareSkeleton()
+
 
   describe('#createDesignDocsInUsers()', function () {
     beforeEach(function() {
@@ -470,7 +653,7 @@ describe("Worker", function() {
       spyOn(this.worker, "promisify").andReturn( this.saveSpy );
       this.promise = this.worker.createDesignDocsInUsers()
     });
-    it('save design doc in _users?', function (done) {
+    it('save design doc in _users?', function () {
       expect(this.worker.couch.database).wasCalledWith('_users');
       expect(this.worker.promisify).wasCalledWith(this.worker.couch.database('_users'), 'save');
       expect(this.saveSpy).wasCalledWith('_design/views', usersDesignDoc);
@@ -495,6 +678,7 @@ describe("Worker", function() {
     });
   }); // #createDesignDocsInUsers()
 
+
   describe('#createDesignDocsInReplicator()', function () {
     beforeEach(function() {
       this.saveDefer = when.defer()
@@ -502,7 +686,7 @@ describe("Worker", function() {
       spyOn(this.worker, "promisify").andReturn( this.saveSpy );
       this.promise = this.worker.createDesignDocsInReplicator()
     });
-    it('save design doc in _replicator?', function (done) {
+    it('save design doc in _replicator?', function () {
       expect(this.worker.couch.database).wasCalledWith('_replicator');
       expect(this.worker.promisify).wasCalledWith(this.worker.couch.database('_replicator'), 'save');
       expect(this.saveSpy).wasCalledWith('_design/shares', replicatorDesignDoc);

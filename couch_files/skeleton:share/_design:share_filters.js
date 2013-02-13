@@ -1,5 +1,5 @@
 var share = function(doc, req) { 
-  return doc._id.indexOf(req.query.share_id) === 6  
+  return doc._id.indexOf(req.query.shareId) === 6  
 };
 
 var json = {
