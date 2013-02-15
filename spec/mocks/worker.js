@@ -1,6 +1,6 @@
 var when = require('when');
 var promisify = require('when-promisify');
-var couchMock = require('./couch.js')
+var CouchMock = require('./couch.js')
 
 var spies = []
 var getSpy = function(name) {
@@ -21,9 +21,9 @@ var worker = {
     app : {},
     user : {}
   },
-  usersDatabase : couchMock.databaseApi,
-  couch : couchMock,
+  couch : new CouchMock,
   handleError : getSpy('handleError'),
+  log : getSpy('log'),
   handleErrorWithMessage : getSpy('handleErrorWithMessage')
 };
 module.exports = worker;

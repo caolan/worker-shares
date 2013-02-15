@@ -20,7 +20,7 @@ var start = function(doc, req) {
   userHash = req.id.match(/\buser\/(\w+)/).pop()
   doc.user_ctx = {
     roles : userHash
-  }; 
+  };
 
   // filter
   if (/^share\//.test(target)) {

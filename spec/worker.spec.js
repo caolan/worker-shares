@@ -5,9 +5,10 @@ var when = require("when");
 var setupMock = require('./mocks/setup')
 var CouchMock = require('./mocks/couch')
 
-var UserDbWorkerMock   = require('./mocks/user_database')
+
+var UsersDbWorkerMock  = require('./mocks/users_database')
+var UsersDbWorkerSpy   = spyOnModule('./../lib/users_database.js').andReturn(UsersDbWorkerMock)
 var SharesDbWorkerMock = require('./mocks/shares_database')
-var UserDbWorkerSpy    = spyOnModule('./../lib/user_database.js').andReturn(UserDbWorkerMock)
 var SharesDbWorkerSpy  = spyOnModule('./../lib/shares_database.js').andReturn(SharesDbWorkerMock)
 
 // mock design docs
@@ -154,211 +155,17 @@ describe("Worker", function() {
 
   describe('#launch()', function () {
     beforeEach(function() {
-      spyOn(this.worker, "listenUp");
       this.worker.launch.andCallThrough()
       this.worker.userDatabases = null
       this.worker.launch()
     });
-    it('should prepare userDatabases hash', function () {
-      expect(this.worker.userDatabases).toEqual({});
-    });
-    it('should init shares db worker', function () {
+    it('should init shares database', function () {
       expect(SharesDbWorkerSpy).wasCalledWith( this.worker )
     });
-
-    it('should #listenUp()', function () {
-      expect(this.worker.listenUp).wasCalled()
+    it('should init users database', function () {
+      expect(UsersDbWorkerSpy).wasCalledWith( this.worker )
     });
   }); // #launch()
-
-
-  describe('#listenUp()', function () {
-    beforeEach(function() {
-      spyOn(this.worker, "handleChange");
-      spyOn(this.worker, "handleChangeError");
-      spyOn(this.worker, "handleRemovedUserAccount");
-      spyOn(this.worker, "handleCreatedUserAccount");
-      this.worker.listenUp()
-    });
-    it('should listen to changes in _users database', function () {
-      expect(this.worker.couch.database).wasCalledWith('_users');
-      expect(this.worker.couch.database().changes).wasCalledWith({since: 0, include_docs: true});
-    });
-    it("should listen to changes in _users changes feed", function() {
-      var changesApi = this.worker.couch.database().changes()
-      var args = changesApi.on.calls[0].args
-      expect(args[0]).toBe('change')
-      args[1]('change')
-      expect(this.worker.handleChange).wasCalledWith('change');
-    });
-    it("should listen to errors in _users changes feed", function() {
-      var changesApi = this.worker.couch.database().changes()
-      var args = changesApi.on.calls[1].args
-      expect(args[0]).toBe('error')
-      args[1]('error')
-      expect(this.worker.handleChangeError).wasCalledWith('error');
-    });
-
-    it("should listen to account:removed event", function() {
-      var args = this.worker.on.calls[0].args
-      expect(args[0]).toBe('account:removed')
-      args[1]('dbName')
-      expect(this.worker.handleRemovedUserAccount).wasCalledWith('dbName');
-    });
-    it("should listen to account:added event", function() {
-      var args = this.worker.on.calls[1].args
-      expect(args[0]).toBe('account:added')
-      args[1]('dbName')
-      expect(this.worker.handleCreatedUserAccount).wasCalledWith('dbName');
-    });
-  }); // #listenUp()
-
-
-  describe('#handleChangeError(error)', function () {
-    beforeEach(function() {
-      spyOn(this.worker, "handleError");
-      this.worker.handleChangeError('ooops')
-    });
-    it('call #handleError with a message', function () {
-      expect(this.worker.handleError).wasCalledWith('ooops', 'error in _users/_changes feed');
-    });
-  }); // #handleChangeError(error)
-
-
-  describe('#handleChange( change )', function () {
-    beforeEach(function() {
-    });
-
-    _when('change.doc has no database property', function () {
-      beforeEach(function() {
-        this.change = {
-          doc : {
-            $state: 'confirmed'
-          }
-        }
-        this.worker.handleChange( this.change )
-      });
-      it("should not emit anything", function() {
-        expect(this.worker.emit).wasNotCalled();
-      });
-    })
-
-    _when('change.doc is not confirmed', function () {
-      beforeEach(function() {
-        this.change = {
-          doc : {
-            database: 'user/hash'
-          }
-        }
-        this.worker.handleChange( this.change )
-      });
-      it("should not emit anything", function() {
-        expect(this.worker.emit).wasNotCalled();
-      });
-    })
-
-    _when('change.deleted is true but user database has not yet been intialized', function () {
-      beforeEach(function() {
-        this.change = {
-          deleted : true,
-          doc : {
-            database: 'user/hash'
-          }
-        }
-        spyOn(this.worker, "userDbInitialized").andReturn( false );
-        this.worker.handleChange( this.change )
-      });
-      it("should not emit anything", function() {
-        expect(this.worker.emit).wasNotCalled();
-      });
-    })
-
-    _when('change.doc is confirmed and has a database property', function () {
-      beforeEach(function() {
-        this.change = {
-          doc : {
-            database: 'user/hash',
-            $state: 'confirmed'
-          }
-        }
-      });
-
-      _and('change.deleted is true and user db has been initialized', function () {
-        beforeEach(function() {
-          this.change.deleted = true
-          spyOn(this.worker, "userDbInitialized").andReturn( true );
-          this.worker.handleChange( this.change )
-        });
-        it("should not emit account:removed event", function() {
-          expect(this.worker.emit).wasCalledWith('account:removed', 'user/hash');
-        });
-      })
-
-      _and('user database has not yet been intialized has not been intialized yet', function () {
-        beforeEach(function() {
-          spyOn(this.worker, "userDbInitialized").andReturn( false );
-          this.worker.handleChange( this.change )
-        });
-        it("should not emit account:added event", function() {
-          expect(this.worker.emit).wasCalledWith('account:added', 'user/hash');
-        });
-      })
-
-      _and('user database has not yet been intialized has been intialized before', function () {
-        beforeEach(function() {
-          spyOn(this.worker, "userDbInitialized").andReturn( true );
-          this.worker.handleChange( this.change )
-        });
-        it("should not emit account:updated event", function() {
-          expect(this.worker.emit).wasCalledWith('account:updated', 'user/hash');
-        });
-      })
-    })
-  }); // #handleChange( change )
-
-
-  describe('#userDbInitialized( dbName )', function () {
-    beforeEach(function() {
-      this.worker.userDatabases = {
-        'user/hash' : true
-      }
-    });
-    _when('userDbWorker has been initialized', function () {
-      it('it should return true', function () {
-        expect(this.worker.userDbInitialized('user/hash')).toBe( true );
-      });
-    });
-    _when('userDbWorker has not been initialized', function () {
-      it('it should return false', function () {
-        expect(this.worker.userDbInitialized('user/unknown')).toBe( false );
-      });
-    });
-  }); // #userDbInitialized( dbName )
-
-
-  describe('#handleCreatedUserAccount( dbName )', function () {
-    beforeEach(function() {
-      this.worker.userDatabases = {}
-    });
-    it('should initialize a new UserDbWorker', function () {
-      this.worker.handleCreatedUserAccount( 'user/hash' )
-      expect(UserDbWorkerSpy).wasCalledWith( 'user/hash', this.worker );
-      expect(this.worker.userDatabases['user/hash']).toEqual( UserDbWorkerMock );
-    });
-  }); // #handleCreatedUserAccount( dbName )
-
-
-  describe('#handleRemovedUserAccount( dbName )', function () {
-    beforeEach(function() {
-      this.worker.userDatabases = {
-        'user/hash' : 'userDbWorker'
-      }
-    });
-    it('remove userDbWorker from userDatabases hash', function () {
-      this.worker.handleRemovedUserAccount( 'user/hash' )
-      expect(this.worker.userDatabases['user/hash']).toBeUndefined();
-    });
-  }); // #handleRemovedUserAccount( dbName )
 
 
   describe('#createShareSkeletonDatabase()', function () {
