@@ -10,8 +10,6 @@ var UsersDatabase = require("./../lib/users_database.js");
 
 describe('UsersDatabase', function () {
   beforeEach(function () {
-    spyOn(UsersDatabase.prototype, "emit");
-    spyOn(UsersDatabase.prototype, "on");
     spyOn(UsersDatabase.prototype, "listenUp");
     this.usersDatabase = new UsersDatabase(WorkerMock);
   });
@@ -54,13 +52,13 @@ describe('UsersDatabase', function () {
     });
 
     it("should listen to account:removed event", function() {
-      var args = this.usersDatabase.on.calls[0].args
+      var args = this.usersDatabase.worker.on.calls[0].args
       expect(args[0]).toBe('account:removed')
       args[1]('dbName')
       expect(this.usersDatabase.handleRemovedUserAccount).wasCalledWith('dbName');
     });
     it("should listen to account:added event", function() {
-      var args = this.usersDatabase.on.calls[1].args
+      var args = this.usersDatabase.worker.on.calls[1].args
       expect(args[0]).toBe('account:added')
       args[1]('dbName')
       expect(this.usersDatabase.handleCreatedUserAccount).wasCalledWith('dbName');
@@ -92,7 +90,7 @@ describe('UsersDatabase', function () {
         this.usersDatabase.handleChange( this.change )
       });
       it("should not emit anything", function() {
-        expect(this.usersDatabase.emit).wasNotCalled();
+        expect(this.usersDatabase.worker.emit).wasNotCalled();
       });
     })
 
@@ -106,7 +104,7 @@ describe('UsersDatabase', function () {
         this.usersDatabase.handleChange( this.change )
       });
       it("should not emit anything", function() {
-        expect(this.usersDatabase.emit).wasNotCalled();
+        expect(this.usersDatabase.worker.emit).wasNotCalled();
       });
     })
 
@@ -122,7 +120,7 @@ describe('UsersDatabase', function () {
         this.usersDatabase.handleChange( this.change )
       });
       it("should not emit anything", function() {
-        expect(this.usersDatabase.emit).wasNotCalled();
+        expect(this.usersDatabase.worker.emit).wasNotCalled();
       });
     })
 
@@ -143,7 +141,7 @@ describe('UsersDatabase', function () {
           this.usersDatabase.handleChange( this.change )
         });
         it("should not emit account:removed event", function() {
-          expect(this.usersDatabase.emit).wasCalledWith('account:removed', 'user/hash');
+          expect(this.usersDatabase.worker.emit).wasCalledWith('account:removed', 'user/hash');
         });
       })
 
@@ -153,7 +151,7 @@ describe('UsersDatabase', function () {
           this.usersDatabase.handleChange( this.change )
         });
         it("should not emit account:added event", function() {
-          expect(this.usersDatabase.emit).wasCalledWith('account:added', 'user/hash');
+          expect(this.usersDatabase.worker.emit).wasCalledWith('account:added', 'user/hash');
         });
       })
 
@@ -163,7 +161,7 @@ describe('UsersDatabase', function () {
           this.usersDatabase.handleChange( this.change )
         });
         it("should not emit account:updated event", function() {
-          expect(this.usersDatabase.emit).wasCalledWith('account:updated', 'user/hash');
+          expect(this.usersDatabase.worker.emit).wasCalledWith('account:updated', 'user/hash');
         });
       })
     })

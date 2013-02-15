@@ -24,6 +24,8 @@ var worker = {
   couch : new CouchMock,
   handleError : getSpy('handleError'),
   log : getSpy('log'),
+  on : getSpy('on'),
+  emit : getSpy('emit'),
   handleErrorWithMessage : getSpy('handleErrorWithMessage')
 };
 module.exports = worker;
