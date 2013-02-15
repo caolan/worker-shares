@@ -262,25 +262,32 @@ describe("Worker", function() {
   describe('#handleCreateShareSkeletonSuccess()', function () {
     beforeEach(function() {
       this.createDesignDocsInShareSkeletonDefer = when.defer()
+      this.createShareSkeletonSecurityDefer = when.defer()
       spyOn(this.worker, "createDesignDocsInShareSkeleton").andReturn( this.createDesignDocsInShareSkeletonDefer.promise );
+      spyOn(this.worker, "createShareSkeletonSecurity").andReturn( this.createShareSkeletonSecurityDefer.promise );
       this.promise = this.worker.handleCreateShareSkeletonSuccess()
     });
-    it('should #createDesignDocsInShareSkeleton()?', function () {
+    it('should #createDesignDocsInShareSkeleton()', function () {
+      expect(this.worker.createDesignDocsInShareSkeleton).wasCalled();
+    });
+    it('should #createShareSkeletonSecurity()', function () {
       expect(this.worker.createDesignDocsInShareSkeleton).wasCalled();
     });
 
-    _when('#createDesignDocsInShareSkeleton() succeeds', function () {
+    _when('#createDesignDocsInShareSkeleton() and #createShareSkeletonSecurity() succeeds', function () {
       beforeEach(function() {
         this.createDesignDocsInShareSkeletonDefer.resolve()
+        this.createShareSkeletonSecurityDefer.resolve()
       });
       it('should resolve', function () {
         expect(this.promise).toBeResolved();
       });
     });
 
-    _when('#createDesignDocsInShareSkeleton() fails', function () {
+    _when('#createDesignDocsInShareSkeleton() or #createShareSkeletonSecurity() fails', function () {
       beforeEach(function() {
         this.createDesignDocsInShareSkeletonDefer.reject()
+        this.createShareSkeletonSecurityDefer.resolve()
       });
       it('should reject', function () {
         expect(this.promise).toBeRejected();
