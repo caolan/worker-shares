@@ -12,11 +12,13 @@ var SharesDbWorkerMock = require('./mocks/shares_database')
 var SharesDbWorkerSpy  = spyOnModule('./../lib/shares_database.js').andReturn(SharesDbWorkerMock)
 
 // mock design docs
-var usersDesignDoc        = require('./../couch_files/_users/_design:users_views')
-var replicatorDesignDoc   = require('./../couch_files/_replicator/_design:shares')
-var shareFiltersDesignDoc = require('./../couch_files/skeleton:share/_design:share_filters')
-var shareAccessDesignDoc  = require('./../couch_files/skeleton:share/_design:write_access')
-var sharesDatabaseSecurityOptions = require('./../couch_files/shares/_security')
+var usersDesignDoc                     = require('../couch_files/_users/_design:users_views')
+var replicatorDesignDoc                = require('../couch_files/_replicator/_design:shares')
+var shareAccessDesignDoc               = require('../couch_files/skeleton:share/_design:write_access')
+var shareSkeletonSecurityOptions       = require('../couch_files/skeleton:share/_security')
+var shareFiltersDesignDoc              = require('../couch_files/skeleton:user:shares/_design:share_filters')
+var userSharesSkeletonSecurityOptions  = require('../couch_files/skeleton:user:shares/_security')
+var sharesDatabaseSecurityOptions      = require('../couch_files/shares/_security')
 
 
 var Worker    = require("./../lib/worker.js");
