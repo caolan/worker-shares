@@ -4,6 +4,7 @@ var share = function(doc, req) {
 
 var json = {
   "_id": "_design/filters",
+  "views": {},
   "filters": {
     "share": share.toString().replace(/\s*\n\s*/g, ' ')
   }

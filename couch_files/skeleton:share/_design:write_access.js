@@ -18,6 +18,7 @@ var validate_doc_update = function(newDocument, oldDocument, userContext, securi
 };
 var json = {
   "_id": "_design/write_access",
+  "views": {},
   "validate_doc_update": validate_doc_update.toString().replace(/\s*\n\s*/g, ' ')
 }
 module.exports = json

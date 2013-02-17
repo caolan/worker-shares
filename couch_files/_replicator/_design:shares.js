@@ -11,27 +11,27 @@ var start = function(doc, req) {
   doc._id        = req.id; 
   doc.continuous = true; 
 
-  // source & target
+  /* source & target */
   dbs            = req.id.replace(/^[^\/]\//,'').split(' => '); 
   doc.source     = dbs[0]; 
-  doc.target     = dbs[1]; 
+  doc.target     = dbs[1];
 
-  // user context
-  userHash = req.id.match(/\buser\/(\w+)/).pop()
+  /* user context */
+  userHash = req.id.match(/\buser\/(\w+)/).pop();
   doc.user_ctx = {
-    roles : userHash
+    roles : [userHash]
   };
 
-  // filter
-  if (/^share\//.test(target)) {
-    doc.filter = 'filter/share'
+  /* filter */
+  if (/^share\//.test(doc.target)) {
+    doc.filter = 'filters/share'
   }
 
-  // timestamps
+  /* timestamps */
   doc.createdAt = JSON.stringify(new Date());
   doc.updatedAt = doc.createdAt; 
 
-  // query params
+  /* query params */
   shareId = req.id.match('share/([0-9a-z]+)').pop(); 
   doc.query_params = {}; 
   doc.query_params.shareId = shareId; 
@@ -40,6 +40,7 @@ var start = function(doc, req) {
 
 var json = {
   "_id": "_design/shares",
+  "views": {},
   "updates": {
     "stop": stop.toString().replace(/\s*\n\s*/g, ' '),
     "start": start.toString().replace(/\s*\n\s*/g, ' ')
