@@ -12,7 +12,7 @@ var start = function(doc, req) {
   doc.continuous = true; 
 
   /* source & target */
-  dbs            = req.id.replace(/^[^\/]\//,'').split(' => '); 
+  dbs            = req.id.replace(/^[^\/]+\//,'').split(' => '); 
   doc.source     = dbs[0]; 
   doc.target     = dbs[1];
 
