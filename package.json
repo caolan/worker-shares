@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "description": "handles sharing of objects between users or publicly",
   "author": "Hoodie",
-  "main": "lib/Worker.js",
+  "main": "lib/worker.js",
   "dependencies": {
     "hoodie-worker": "git://github.com/hoodiehq/hoodie-worker.git"
   },
