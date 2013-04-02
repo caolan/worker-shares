@@ -10,14 +10,7 @@ This worker handles sharing of objects between users or publicly.
 What happens behind the curtain
 ---------------------------------
 
-An additional `shares` database gets created for every user, 
-in the form of `user/hash567/shares`. Objects do not get replicated 
-directly from the user datbase (`user/hash567`) as the user has the
-option to share only certain attributes of an object. 
-
-The worker follows all user & user shares databases. If the latter 
-do not exist yet, they get created.
-
+The worker follows all userdatabases.
 Here's an example (simplified) `$share` object created by a user:
 
 ```json
@@ -29,10 +22,10 @@ Here's an example (simplified) `$share` object created by a user:
 ```
 
 The worker picks it up, creates a database "share/uuid567" and a 
-continuous replication from user's `shares` database. 
+continuous replication from user's database. 
 
 Whenever the user adds an object to the sharing, the share id will be 
-added to the $shares attribute (which gets created if not present yet.)
+added to $sharedAt attribute
 
 ```json
 {
@@ -40,35 +33,16 @@ added to the $shares attribute (which gets created if not present yet.)
   "type"    : "todo",
   "name"    : "Remeber the mild",
   "owner"   : "joe@example.com",
-  "$shares" : {
-    "uuid567": true
-  }
+  "$sharedAt" : "uuid567"
 }
 ```
-
-The worker will remove the $shares attribute and copy it over to the 
-user's $shares database. Besides `true`, the value can also be an array 
-of attributes:
-
-```json
-{
-  "_id"     : "todo/abc4567",
-  "type"    : "todo",
-  "name"    : "Remeber the mild",
-  "owner"   : "joe@example.com",
-  "$shares" : {
-    "uuid567": ["name"]
-  }
-}
 ```
 
-In the example above, only the `name` attribute will be copied over, 
-the `owner` attribute will not be shared. 
 
-Whenever the user removes an object from a sharing, the value will be 
-set to false, so that the worker can react on it and remove the object 
-from the $shares database. Once the object has been removed, the share 
-id will me remove from the `$shares` hash of the object.
+Whenever the user removes an object from a sharing, an `$unshared : true`
+property gets added, so that the worker can react on it and remove the object 
+from the $shares database. Once the object has been removed, both the `$unshared`
+and the `$sharedAt` attributes will get removed
 
 
 The shares database

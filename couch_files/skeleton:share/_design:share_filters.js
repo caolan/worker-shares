@@ -1,5 +1,12 @@
+// 1. ignore unshared objects
+// 2. replicate only objects belonging to share
 var share = function(doc, req) { 
-  return doc._id.indexOf(req.query.shareId) === 6  
+  if (doc.$unshared) {
+    return false;
+  }
+  if (doc.$sharedAt === req.query.shareId) {
+    return true;
+  }
 };
 
 var json = {
