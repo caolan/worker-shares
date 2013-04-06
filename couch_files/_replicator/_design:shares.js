@@ -1,3 +1,6 @@
+// FRIENDLY REMINDER
+// Do not use // comments in _designDoc functions
+
 var stop = function(doc, req) { 
   log('stopping replication ' + doc._id); 
   doc._deleted = true; 
@@ -17,7 +20,10 @@ var start = function(doc, req) {
   doc.target     = dbs[1];
 
   /* user context */
-  userHash = req.id.match(/\buser\/(\w+)/).pop();
+  /* turn $subscription/user/what-ever-here => share/hash  into what-ever-here */
+   
+  userHash = req.id.match(/\buser\/([^\s]+)/).pop();
+
   doc.user_ctx = {
     roles : [userHash]
   };
