@@ -1,6 +1,6 @@
 {
   "name": "hoodie-worker-shares",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "handles sharing of objects between users or publicly",
   "author": "Hoodie",
   "main": "lib/worker.js",
